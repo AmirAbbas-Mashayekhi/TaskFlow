@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-
 from django.db import models
 from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
@@ -54,3 +53,10 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField()
     expected_duration = models.PositiveSmallIntegerField()
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    posted_at = models.DateTimeField(auto_now_add=True)
+    text = models.TextField()
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
