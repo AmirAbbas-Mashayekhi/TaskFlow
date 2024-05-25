@@ -1,14 +1,15 @@
-import uuid
 from datetime import datetime
+
+from django.conf import settings
 from django.contrib import admin
 from django.db import models
-from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 
 
 class Participant(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     phone = PhoneNumberField(unique=True)
+
     # TODO:
     #      problematic in automatic user profile creation after authentication
 
@@ -31,13 +32,21 @@ class Participant(models.Model):
         ordering = ['user__username']
 
 
+class Team(models.Model):
+    title = models.CharField(max_length=255)
+    members = models.ManyToManyField(Participant, blank=True, related_name='teams')
+    leader = models.ForeignKey(Participant, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
+
+
 class Project(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=255, blank=True, null=True)
     start_date = models.DateField(default=datetime.now)
     end_date = models.DateField(null=True, blank=True)
-    owner = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
@@ -71,7 +80,7 @@ class Task(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
-    assignees = models.ManyToManyField(Participant, related_name='assignees')
+    assignees = models.ManyToManyField(Participant, blank=True)
     priority = models.CharField(max_length=1, choices=PRIORITY_CHOICES, default=PRIORITY_LOW)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=STATUS_BACKLOG)
     created_at = models.DateTimeField(auto_now_add=True)
