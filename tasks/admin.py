@@ -38,6 +38,6 @@ class CommentAdmin(admin.ModelAdmin):
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ['title', 'owner', 'start_date', 'end_date']
-    list_select_related = ['owner']
+    list_select_related = ['owner__user']
     autocomplete_fields = ['owner']
     search_fields = ['title__istartswith']
