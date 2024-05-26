@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
@@ -50,6 +49,15 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Role(models.Model):
+    title = models.CharField(max_length=255)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = [['participant', 'project']]
 
 
 class Task(models.Model):
