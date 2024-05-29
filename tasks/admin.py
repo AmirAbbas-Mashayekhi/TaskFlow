@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Task, Participant, Comment, Project, Team
+from .models import Task, Participant, Comment, Project, Team, Role
 
 
 @admin.register(Participant)
@@ -53,5 +53,13 @@ class CommentAdmin(admin.ModelAdmin):
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ['title', 'team', 'start_date', 'end_date']
     autocomplete_fields = ['team']
+    search_fields = ['title__istartswith']
+    list_per_page = 10
+
+
+@admin.register(Role)
+class RoleAdmin(admin.ModelAdmin):
+    list_display = ['title', 'project', 'participant']
+    autocomplete_fields = ['project']
     search_fields = ['title__istartswith']
     list_per_page = 10
