@@ -87,7 +87,7 @@ class Task(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField()
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     assignees = models.ManyToManyField(Participant, blank=True)
     priority = models.CharField(max_length=1, choices=PRIORITY_CHOICES, default=PRIORITY_LOW)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=STATUS_BACKLOG)
