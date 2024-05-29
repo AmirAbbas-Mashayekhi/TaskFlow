@@ -36,3 +36,5 @@ class ParticipantViewSet(ModelViewSet):
         if self.request.method == 'GET':
             serializer = ParticipantSerializer(participant)
             return Response(serializer.data)
+
+# TODO: Create TeamViewSet

@@ -14,3 +14,5 @@ class ParticipantSerializer(ModelSerializer):
         participant = Participant(**validated_data, user_id=self.context['user_id'])
         participant.save()
         return participant
+
+# TODO: Create Team Serializer
