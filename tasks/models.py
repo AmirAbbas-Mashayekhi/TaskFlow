@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from django.conf import settings
 from django.contrib import admin
@@ -12,15 +13,15 @@ class Participant(models.Model):
     # TODO:
     #      problematic in automatic user profile creation after authentication
 
-    @admin.display(ordering='user__first_name')
+    @admin.display(ordering="user__first_name")
     def first_name(self):
         return self.user.first_name
 
-    @admin.display(ordering='user__last_name')
+    @admin.display(ordering="user__last_name")
     def last_name(self):
         return self.user.last_name
 
-    @admin.display(ordering='user__username')
+    @admin.display(ordering="user__username")
     def user_name(self):
         return self.user.username
 
@@ -28,16 +29,35 @@ class Participant(models.Model):
         return self.user.username
 
     class Meta:
-        ordering = ['user__username']
+        ordering = ["user__username"]
 
 
 class Team(models.Model):
     title = models.CharField(max_length=255)
-    members = models.ManyToManyField(Participant, blank=True, related_name='teams')
     leader = models.ForeignKey(Participant, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
+
+
+class TeamMember(models.Model):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="members")
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    joined = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.member.user_name()
+
+
+class Invitation(models.Model):
+    email = models.EmailField(max_length=254)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    accepted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invitation to {self.email} for team {self.team}"
 
 
 class Project(models.Model):
@@ -57,40 +77,44 @@ class Role(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = [['participant', 'project']]
+        unique_together = [["participant", "project"]]
 
 
 class Task(models.Model):
-    PRIORITY_CRITICAL = 'C'
-    PRIORITY_HIGH = 'H'
-    PRIORITY_MEDIUM = 'M'
-    PRIORITY_LOW = 'L'
+    PRIORITY_CRITICAL = "C"
+    PRIORITY_HIGH = "H"
+    PRIORITY_MEDIUM = "M"
+    PRIORITY_LOW = "L"
     PRIORITY_CHOICES = [
-        (PRIORITY_CRITICAL, 'Critical'),
-        (PRIORITY_HIGH, 'High'),
-        (PRIORITY_MEDIUM, 'Medium'),
-        (PRIORITY_LOW, 'Low')
+        (PRIORITY_CRITICAL, "Critical"),
+        (PRIORITY_HIGH, "High"),
+        (PRIORITY_MEDIUM, "Medium"),
+        (PRIORITY_LOW, "Low"),
     ]
 
-    STATUS_BACKLOG = 'B'
-    STATUS_TODO = 'T'
-    STATUS_DOING = 'D'
-    STATUS_FINISHED = 'F'
-    STATUS_ARCHIVED = 'A'
+    STATUS_BACKLOG = "B"
+    STATUS_TODO = "T"
+    STATUS_DOING = "D"
+    STATUS_FINISHED = "F"
+    STATUS_ARCHIVED = "A"
     STATUS_CHOICES = [
-        (STATUS_BACKLOG, 'Backlog'),
-        (STATUS_TODO, 'Todo'),
-        (STATUS_DOING, 'Doing'),
-        (STATUS_FINISHED, 'Finished'),
-        (STATUS_ARCHIVED, 'Archived')
+        (STATUS_BACKLOG, "Backlog"),
+        (STATUS_TODO, "Todo"),
+        (STATUS_DOING, "Doing"),
+        (STATUS_FINISHED, "Finished"),
+        (STATUS_ARCHIVED, "Archived"),
     ]
 
     title = models.CharField(max_length=255)
     description = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     assignees = models.ManyToManyField(Participant, blank=True)
-    priority = models.CharField(max_length=1, choices=PRIORITY_CHOICES, default=PRIORITY_LOW)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=STATUS_BACKLOG)
+    priority = models.CharField(
+        max_length=1, choices=PRIORITY_CHOICES, default=PRIORITY_LOW
+    )
+    status = models.CharField(
+        max_length=1, choices=STATUS_CHOICES, default=STATUS_BACKLOG
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField()
     expected_duration = models.PositiveSmallIntegerField()
@@ -106,4 +130,4 @@ class Comment(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.task} comment'
+        return f"{self.task} comment"

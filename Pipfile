@@ -10,9 +10,13 @@ python-dotenv = "*"
 django-phonenumber-field = {extras = ["phonenumberslite"], version = "*"}
 djoser = "*"
 djangorestframework-simplejwt = "*"
+redis = "*"
+celery = "*"
+drf-nested-routers = "*"
+django-templated-mail = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"
 
 [requires]
-python_version = "3.11"
+python_version = "3.10"
