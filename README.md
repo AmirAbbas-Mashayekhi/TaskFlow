@@ -1,5 +1,5 @@
 # a Project Manager from hell
 
-**Pink Floyd** + **Coffee** were the main contributers.
+**Pink Floyd** and **Coffee** were the main contributers.
 
 > more details later...
