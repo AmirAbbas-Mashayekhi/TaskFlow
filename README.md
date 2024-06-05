@@ -1,6 +1,6 @@
 # a Project Manager from hell
 
-**Pink Floyd** and **Coffee** were the main contributers.
+**Pink Floyd** and **Coffee** were the main contributors.
 
 > more details later...
 
