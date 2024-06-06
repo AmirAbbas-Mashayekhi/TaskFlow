@@ -114,6 +114,15 @@ class TeamMemberViewSet(ModelViewSet):
     def get_queryset(self):
         return TeamMember.objects.filter(team_id=self.kwargs["teams_pk"])
 
+    def destroy(self, request, *args, **kwargs):
+        team_member: TeamMember = self.get_object()
+        invitation = Invitation.objects.get(
+            team_id=self.kwargs["teams_pk"], email=team_member.participant.user.email
+        )
+        invitation.delete()
+        team_member.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class InvitationViewSet(viewsets.ModelViewSet):
     queryset = Invitation.objects.all()
@@ -126,7 +135,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         methods=["GET"],
         url_path="accept/(?P<token>[^/.]+)",
         name="invitation-accept",
-        permission_classes=[AllowAny]
+        permission_classes=[AllowAny],
     )
     def accept_invitation(self, request, token=None):
         invitation = Invitation.objects.filter(token=token, accepted=False).first()
