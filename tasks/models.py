@@ -46,7 +46,7 @@ class TeamMember(models.Model):
     joined = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.member.user_name()
+        return self.participant.user_name()
 
 
 class Invitation(models.Model):
