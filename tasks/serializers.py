@@ -1,4 +1,3 @@
-from re import search
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from .models import Invitation, Participant, Team, TeamMember
@@ -22,6 +21,7 @@ class TeamMemberSerializer(ModelSerializer):
     class Meta:
         model = TeamMember
         fields = ["id", "participant", "joined"]
+
 
 
 class TeamSerializer(ModelSerializer):
@@ -56,8 +56,14 @@ class CreateInvitationSerializer(serializers.Serializer):
     def validate_email(self, value):
         participant = Participant.objects.filter(user__email=value)
 
-        if not participant:
+        if not participant.exists():
             raise serializers.ValidationError("User with this email does not exist.")
+        if TeamMember.objects.filter(
+            team=self.context["team"], participant_id=participant.first().id
+        ).exists():
+            raise serializers.ValidationError("User Already Added to the Team.")
+        if Invitation.objects.filter(team=self.context["team"], email=value).exists():
+            raise serializers.ValidationError("Invitation Already sent.")
         return value
 
     def create(self, validated_data):
