@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-from .models import Invitation, Participant, Team, TeamMember
+from .models import Invitation, Participant, Project, Team, TeamMember
 
 
 class ParticipantSerializer(ModelSerializer):
@@ -21,7 +21,6 @@ class TeamMemberSerializer(ModelSerializer):
     class Meta:
         model = TeamMember
         fields = ["id", "participant", "joined"]
-
 
 
 class TeamSerializer(ModelSerializer):
@@ -72,3 +71,52 @@ class CreateInvitationSerializer(serializers.Serializer):
         invitation = Invitation(email=email, team=team)
         invitation.save()
         return invitation
+
+
+class ProjectSerializer(ModelSerializer):
+    team = TeamSerializer()
+
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "title",
+            "description",
+            "start_date",
+            "end_date",
+            "team",
+        ]
+
+
+class CreateProjectSerializer(ModelSerializer):
+    team_id = serializers.IntegerField()
+
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "title",
+            "description",
+            "start_date",
+            "end_date",
+            "team_id",
+        ]
+
+    def validate_team_id(self, value: int):
+        participant = Participant.objects.get(user_id=self.context["user_id"])
+
+        if not Team.objects.filter(pk=value, leader=participant).exists():
+            raise serializers.ValidationError("Team does not exist.")
+        return value
+
+
+class UpdateProjectSerializer(ModelSerializer):
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "title",
+            "description",
+            "start_date",
+            "end_date",
+        ]
