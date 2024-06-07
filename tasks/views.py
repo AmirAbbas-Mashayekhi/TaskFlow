@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.urls import reverse
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -7,14 +8,17 @@ from rest_framework.viewsets import ModelViewSet
 
 from tasks.permissions import IsNotRegisteredParticipant, IsRegisteredParticipant
 from tasks.tasks import send_invitation_email
-from .models import Invitation, Participant, Team, TeamMember
+from .models import Invitation, Participant, Project, Team, TeamMember
 from .serializers import (
     CreateInvitationSerializer,
+    CreateProjectSerializer,
     CreateTeamSerializer,
     InvitationSerializer,
     ParticipantSerializer,
+    ProjectSerializer,
     TeamMemberSerializer,
     TeamSerializer,
+    UpdateProjectSerializer,
 )
 
 
@@ -155,3 +159,33 @@ class InvitationViewSet(viewsets.ModelViewSet):
             {"message": "Invitation accepted and user added to the team."},
             status=status.HTTP_200_OK,
         )
+
+
+class ProjectViewSet(ModelViewSet):
+    permission_classes = [IsRegisteredParticipant]
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Project.objects.all()
+
+        participant = Participant.objects.get(user_id=self.request.user.id)
+        return Project.objects.select_related("team").filter(team__leader=participant)
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return CreateProjectSerializer
+        if self.request.method == "PUT":
+            return UpdateProjectSerializer
+        return ProjectSerializer
+
+    def get_serializer_context(self):
+        return {"user_id": self.request.user.id}
+
+    @action(detail=False, methods=["GET"])
+    def active_projects(self, request):
+        participant = Participant.objects.get(user_id=request.user.id)
+        projects = Project.objects.select_related("team").filter(
+            team__leader=participant, end_date__gt=datetime.now()
+        )
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data)
