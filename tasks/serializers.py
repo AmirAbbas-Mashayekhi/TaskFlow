@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-from .models import Invitation, Participant, Project, Team, TeamMember
+from .models import Invitation, Participant, Project, Role, Team, TeamMember
 
 
 class ParticipantSerializer(ModelSerializer):
@@ -120,3 +120,36 @@ class UpdateProjectSerializer(ModelSerializer):
             "start_date",
             "end_date",
         ]
+
+
+class RoleSerializer(ModelSerializer):
+    project_id = serializers.IntegerField()
+    participant_id = serializers.IntegerField()
+
+    class Meta:
+        model = Role
+        fields = [
+            "id",
+            "title",
+            "project_id",
+            "participant_id",
+        ]
+
+    def validate_project_id(self, value):
+        current_participant = Participant.objects.get(user_id=self.context["user_id"])
+
+        if not Project.objects.filter(
+            pk=value,
+            team__leader=current_participant,
+        ).exists():
+            raise serializers.ValidationError(
+                "No project/participant matches the criteria."
+            )
+        return value
+
+    def validate_participant_id(self, value):
+        if not TeamMember.objects.filter(participant_id=value).exists():
+            raise serializers.ValidationError(
+                "No project/participant matches the criteria."
+            )
+        return value
