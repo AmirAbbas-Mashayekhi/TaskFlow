@@ -8,7 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from tasks.permissions import IsNotRegisteredParticipant, IsRegisteredParticipant
 from tasks.tasks import send_invitation_email
-from .models import Invitation, Participant, Project, Team, TeamMember
+from .models import Invitation, Participant, Project, Role, Team, TeamMember
 from .serializers import (
     CreateInvitationSerializer,
     CreateProjectSerializer,
@@ -16,6 +16,7 @@ from .serializers import (
     InvitationSerializer,
     ParticipantSerializer,
     ProjectSerializer,
+    RoleSerializer,
     TeamMemberSerializer,
     TeamSerializer,
     UpdateProjectSerializer,
@@ -189,3 +190,17 @@ class ProjectViewSet(ModelViewSet):
         )
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
+
+
+class RoleViewSet(ModelViewSet):
+    serializer_class = RoleSerializer
+    permission_classes = [IsRegisteredParticipant]
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Role.objects.all()
+        participant = Participant.objects.get(user_id=self.request.user.id)
+        return Role.objects.filter(project__team__leader=participant)
+
+    def get_serializer_context(self):
+        return {"user_id": self.request.user.id}
