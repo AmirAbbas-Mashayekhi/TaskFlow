@@ -4,6 +4,7 @@ from .views import (
     InvitationViewSet,
     ParticipantViewSet,
     ProjectViewSet,
+    RoleViewSet,
     TeamMemberViewSet,
     TeamViewSet,
 )
@@ -14,6 +15,8 @@ router.register("participants", ParticipantViewSet, basename="participants")
 router.register("teams", TeamViewSet, basename="teams")
 router.register("invitations", InvitationViewSet, basename="invitations")
 router.register("projects", ProjectViewSet, basename="projects")
+router.register("roles", RoleViewSet, basename="roles")
+
 
 teams_router = routers.NestedDefaultRouter(router, "teams", lookup="teams")
 teams_router.register("members", TeamMemberViewSet, basename="members")
