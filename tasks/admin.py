@@ -84,6 +84,6 @@ class ProjectAdmin(admin.ModelAdmin):
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
     list_display = ["title", "project", "participant"]
-    autocomplete_fields = ["project"]
+    autocomplete_fields = ["project", "participant"]
     search_fields = ["title__istartswith"]
     list_per_page = 10
