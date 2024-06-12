@@ -45,9 +45,12 @@ class TeamMember(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     joined = models.DateTimeField(auto_now_add=True)
 
+
     def __str__(self):
         return self.participant.user_name()
 
+    class Meta:
+        unique_together = [['team', 'participant']]
 
 class Invitation(models.Model):
     email = models.EmailField(max_length=254)
