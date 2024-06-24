@@ -8,8 +8,18 @@ from rest_framework.viewsets import ModelViewSet
 
 from tasks.permissions import IsNotRegisteredParticipant, IsRegisteredParticipant
 from tasks.tasks import send_invitation_email
-from .models import Invitation, Participant, Project, Role, Team, TeamMember
+from .models import (
+    Assignee,
+    Invitation,
+    Participant,
+    Project,
+    Role,
+    Task,
+    Team,
+    TeamMember,
+)
 from .serializers import (
+    AssigneeSerializer,
     CreateInvitationSerializer,
     CreateProjectSerializer,
     CreateTeamSerializer,
@@ -17,6 +27,7 @@ from .serializers import (
     ParticipantSerializer,
     ProjectSerializer,
     RoleSerializer,
+    TaskSerializer,
     TeamMemberSerializer,
     TeamSerializer,
     UpdateProjectSerializer,
@@ -204,3 +215,31 @@ class RoleViewSet(ModelViewSet):
 
     def get_serializer_context(self):
         return {"user_id": self.request.user.id}
+
+
+class TaskViewSet(ModelViewSet):
+    serializer_class = TaskSerializer
+    permission_classes = [IsRegisteredParticipant]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Task.objects.all()
+        participant_id = Participant.objects.values("id").get(user_id=user.id)
+        return Task.objects.filter(project__team__leader_id=participant_id["id"])
+
+    def get_serializer_context(self):
+        return {"user_id": self.request.user.id}
+
+
+class AssigneeViewSet(ModelViewSet):
+    http_method_names = ["head", "options", "get", "post", "delete"]
+
+    def get_queryset(self):
+        return Assignee.objects.filter(task_id=self.kwargs["tasks_pk"])
+
+    def get_serializer_class(self):
+        return AssigneeSerializer
+
+    def get_serializer_context(self):
+        return {"task_id": self.kwargs["tasks_pk"]}

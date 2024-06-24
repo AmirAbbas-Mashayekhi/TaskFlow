@@ -1,3 +1,4 @@
+from pyexpat import model
 import uuid
 from datetime import datetime
 from django.conf import settings
@@ -5,8 +6,11 @@ from django.contrib import admin
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
+from tasks import managers
+
 
 class Participant(models.Model):
+    objects = managers.ParticipantManager()
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     phone = PhoneNumberField(unique=True)
 
@@ -26,7 +30,7 @@ class Participant(models.Model):
         return self.user.username
 
     def __str__(self):
-        return self.user.username
+        return self.user_name()
 
     class Meta:
         ordering = ["user__username"]
@@ -45,12 +49,12 @@ class TeamMember(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     joined = models.DateTimeField(auto_now_add=True)
 
-
     def __str__(self):
-        return self.participant.user_name()
+        return f"{self.participant} @ {self.team}"
 
     class Meta:
-        unique_together = [['team', 'participant']]
+        unique_together = [["team", "participant"]]
+
 
 class Invitation(models.Model):
     email = models.EmailField(max_length=254)
@@ -109,9 +113,8 @@ class Task(models.Model):
     ]
 
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    assignees = models.ManyToManyField(Participant, blank=True)
     priority = models.CharField(
         max_length=1, choices=PRIORITY_CHOICES, default=PRIORITY_LOW
     )
@@ -124,6 +127,17 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Assignee(models.Model):
+    team_member = models.ForeignKey(
+        TeamMember, on_delete=models.CASCADE, related_name="assigned"
+    )
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.team_member
 
 
 class Comment(models.Model):

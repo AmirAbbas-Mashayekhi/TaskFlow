@@ -1,6 +1,15 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-from .models import Invitation, Participant, Project, Role, Team, TeamMember
+from .models import (
+    Assignee,
+    Invitation,
+    Participant,
+    Project,
+    Role,
+    Task,
+    Team,
+    TeamMember,
+)
 
 
 class ParticipantSerializer(ModelSerializer):
@@ -153,3 +162,50 @@ class RoleSerializer(ModelSerializer):
                 "No project/participant matches the criteria."
             )
         return value
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    project_id = serializers.IntegerField(write_only=True)
+    project = ProjectSerializer(read_only=True)
+
+    class Meta:
+        model = Task
+        fields = [
+            "id",
+            "title",
+            "description",
+            "project_id",
+            "project",
+            "priority",
+            "status",
+            "created_at",
+            "due_date",
+            "expected_duration",
+        ]
+
+    def validate_project_id(self, value):
+        participant = Participant.objects.get(user_id=self.context["user_id"])
+        if not Project.objects.filter(pk=value, team__leader=participant).exists():
+            raise serializers.ValidationError("No project matches the criteria.")
+        return value
+
+
+class AssigneeSerializer(ModelSerializer):
+    team_member_id = serializers.IntegerField()
+    team_member = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Assignee
+        fields = ["id", "team_member_id", "team_member", "created_at"]
+
+    def validate_team_member_id(self, value: int):
+        team_id = Task.objects.get(pk=self.context["task_id"]).project.team.id
+
+        if not TeamMember.objects.filter(pk=value, team_id=team_id).exists():
+            raise serializers.ValidationError("Team Member does not exist.")
+        return value
+
+    def create(self, validated_data):
+        assignee = Assignee(**validated_data, task_id=self.context["task_id"])
+        assignee.save()
+        return assignee

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import (
+    Assignee,
     Invitation,
     Task,
     Participant,
@@ -25,6 +26,7 @@ class TaskAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "title",
+        "description",
         "project",
         "priority",
         "status",
@@ -35,7 +37,7 @@ class TaskAdmin(admin.ModelAdmin):
     list_editable = ["priority", "status"]
     list_per_page = 20
     search_fields = ["title"]
-    autocomplete_fields = ["assignees", "project"]
+    autocomplete_fields = ["project"]
 
 
 @admin.register(Team)
@@ -50,8 +52,17 @@ class TeamAdmin(admin.ModelAdmin):
         return team.members.count()
 
 
+@admin.register(Assignee)
+class AssigneeAdmin(admin.ModelAdmin):
+    list_display = ["id", "team_member", "task"]
+    list_per_page = 20
+    search_fields = ["team_member__istartswith"]
+    autocomplete_fields = ["team_member", "task"]
+
+
 @admin.register(TeamMember)
 class TeamMemberAdmin(admin.ModelAdmin):
+    search_fields = ["participant_username"]
     list_display = ["id", "team", "participant", "joined"]
     autocomplete_fields = ["team", "participant"]
     list_select_related = ["participant__user"]
@@ -75,7 +86,7 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ["title", "team", "start_date", "end_date"]
+    list_display = ["id", "title", "team", "start_date", "end_date"]
     autocomplete_fields = ["team"]
     search_fields = ["title__istartswith"]
     list_per_page = 10
