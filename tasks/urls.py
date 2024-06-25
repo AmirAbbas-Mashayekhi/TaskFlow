@@ -1,7 +1,9 @@
+from cgitb import lookup
 from django.urls import path
 from rest_framework_nested import routers
 from .views import (
     AssigneeViewSet,
+    CommentViewSet,
     InvitationViewSet,
     ParticipantViewSet,
     ProjectViewSet,
@@ -26,6 +28,7 @@ teams_router.register("members", TeamMemberViewSet, basename="members")
 
 tasks_router = routers.NestedDefaultRouter(router, "tasks", lookup="tasks")
 tasks_router.register("assignees", AssigneeViewSet, basename="assignees")
+tasks_router.register("comments", CommentViewSet, basename="comments")
 
 urlpatterns = router.urls + teams_router.urls + tasks_router.urls
 

@@ -10,6 +10,7 @@ from tasks.permissions import IsNotRegisteredParticipant, IsRegisteredParticipan
 from tasks.tasks import send_invitation_email
 from .models import (
     Assignee,
+    Comment,
     Invitation,
     Participant,
     Project,
@@ -20,6 +21,7 @@ from .models import (
 )
 from .serializers import (
     AssigneeSerializer,
+    CommentSerializer,
     CreateInvitationSerializer,
     CreateProjectSerializer,
     CreateTeamSerializer,
@@ -233,6 +235,7 @@ class TaskViewSet(ModelViewSet):
 
 
 class AssigneeViewSet(ModelViewSet):
+    permission_classes = [IsRegisteredParticipant]
     http_method_names = ["head", "options", "get", "post", "delete"]
 
     def get_queryset(self):
@@ -243,3 +246,17 @@ class AssigneeViewSet(ModelViewSet):
 
     def get_serializer_context(self):
         return {"task_id": self.kwargs["tasks_pk"]}
+
+
+class CommentViewSet(ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [IsRegisteredParticipant]
+
+    def get_queryset(self):
+        return Comment.objects.filter(task_id=self.kwargs["tasks_pk"])
+
+    def get_serializer_context(self):
+        return {
+            "user_id": self.request.user.id,
+            "task_id": self.kwargs["tasks_pk"],
+        }

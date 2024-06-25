@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from .models import (
     Assignee,
+    Comment,
     Invitation,
     Participant,
     Project,
@@ -209,3 +210,19 @@ class AssigneeSerializer(ModelSerializer):
         assignee = Assignee(**validated_data, task_id=self.context["task_id"])
         assignee.save()
         return assignee
+
+
+class CommentSerializer(ModelSerializer):
+    user = ParticipantSerializer(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ["id", "user", "text", "posted_at"]
+
+    def create(self, validated_data):
+        participant = Participant.objects.get(user_id=self.context["user_id"])
+        comment = Comment(
+            **validated_data, user=participant, task_id=self.context["task_id"]
+        )
+        comment.save()
+        return comment
