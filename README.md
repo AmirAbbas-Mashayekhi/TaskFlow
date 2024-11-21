@@ -1,7 +1,6 @@
 # TaskFlow
 
 > "A project manager from hell" - *Pink floyd and coffee* were the main contributors.
-![MathCalculateGIF](https://github.com/user-attachments/assets/4fdaa2d2-4564-4bdc-9af1-2827dc3a6eff)
 
 
 #### Video Demo: [Watch Demo](https://youtu.be/6UFRHdf7cs0)
