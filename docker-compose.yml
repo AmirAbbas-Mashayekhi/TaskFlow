@@ -1,0 +1,69 @@
+services:
+  db:
+    image: mysql:8.1
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - network_db:/var/lib/mysql
+    restart: always
+
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: 1
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DB_HOST: db
+      DJANGO_DB_PORT: 3306
+      DJANGO_DB_NAME: ${MYSQL_DATABASE}
+      DJANGO_DB_USER: ${MYSQL_USER}
+      DJANGO_DB_PASSWORD: ${MYSQL_PASSWORD}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      EMAIL_HOST: smtp4dev
+      EMAIL_PORT: 25
+    depends_on:
+      - db
+      - redis
+      - smtp4dev
+    restart: unless-stopped
+    volumes:
+      - .:/app
+
+  celery_worker:
+    build: .
+    command: celery -A TaskFlowAPI worker --loglevel=info
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      - redis
+      - backend
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    ports:
+      - "5000:80" # Web interface
+      - "25:25" # SMTP server
+    volumes:
+      - smtp4dev-data:/smtp4dev
+    restart: unless-stopped
+
+volumes:
+  network_db:
+  smtp4dev-data:

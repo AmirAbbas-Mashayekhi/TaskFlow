@@ -25,12 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "0.0.0.0"]
 
 # Application definition
 
@@ -86,10 +86,11 @@ WSGI_APPLICATION = "TaskFlowAPI.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("DB_NAME"),
-        "HOST": os.getenv("DB_HOST"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "NAME": os.getenv("DJANGO_DB_NAME"),
+        "HOST": os.getenv("DJANGO_DB_HOST"),
+        "USER": os.getenv("DJANGO_DB_USER"),
+        "PASSWORD": os.getenv("DJANGO_DB_PASSWORD"),
+        "PORT": os.getenv("DJANGO_DB_PORT"),
     }
 }
 
@@ -150,13 +151,14 @@ SIMPLE_JWT = {"AUTH_HEADER_TYPES": ("JWT",), "ACCESS_TOKEN_LIFETIME": timedelta(
 
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "localhost"
+EMAIL_HOST = 'smtp4dev'
 EMAIL_HOST_USER = ""
 EMAIL_HOST_PASSWORD = ""
-EMAIL_PORT = 2525
+EMAIL_PORT = 25
 DEFAULT_FROM_EMAIL = "admin@taskflow.com"
 
 # Celery
-CELERY_BROKER_URL = "redis://localhost:6379/1"
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 BACKEND_URL = os.environ.get("BACKEND_URL", default="http://localhost:8000")
