@@ -2,8 +2,6 @@
 
 > "A project manager from hell" - *Pink Floyd and coffee* were the main contributors.
 
-#### Video Demo: [Watch Demo](https://youtu.be/6UFRHdf7cs0)
-
 ---
 
 ## Description
