@@ -1,19 +1,16 @@
-# Force everything to LF
 * text=auto eol=lf
 
-# Shell scripts must NEVER have CRLF
 *.sh text eol=lf
-
-# Docker / entrypoints / scripts
 Dockerfile text eol=lf
-*.dockerfile text eol=lf
 
-# Config files (important for dev environments)
 *.yml text eol=lf
 *.yaml text eol=lf
-*.env text eol=lf
 
-# Explicit binaries (never touched)
+# safer handling
+*.env binary
+
+# binaries
 *.png binary
 *.jpg binary
+*.jpeg binary
 *.exe binary
